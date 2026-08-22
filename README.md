@@ -92,22 +92,22 @@ data "terraform_remote_state" "aws_base" {
 
 ## ⚙️ Variáveis e Saídas
 
-### Principais Variáveis de Entrada
-
 | Variável | Tipo | Padrão | Descrição |
 |---|---|---|---|
 | `aws_region` | `string` | `us-east-1` | Região da AWS |
 | `project_name` | `string` | `oficina-mecanica` | Nome do projeto |
 | `environment` | `string` | `prod-simulated` | Nome do ambiente |
 | `kubernetes_version` | `string` | `1.35` | Versão do Kubernetes no EKS |
-| `eks_cluster_role_name` | `string` | `LabEksClusterRole` | Role IAM do cluster EKS |
-| `eks_node_role_name` | `string` | `LabEksNodeRole` | Role IAM dos nós gerenciados |
+| `eks_cluster_role_name` | `string` | `""` | Role IAM do cluster EKS (injetada via `vars.EKS_CLUSTER_ROLE_NAME`) |
+| `eks_node_role_name` | `string` | `""` | Role IAM dos nós gerenciados (injetada via `vars.EKS_NODE_ROLE_NAME`) |
 | `node_instance_type` | `string` | `t3.small` | Tipo de instância EC2 dos nós |
 | `node_desired_size` | `number` | `1` | Quantidade desejada de nós |
 | `aws_base_state_bucket` | `string` | `bkt-oficina-mecanica` | Bucket S3 do state de rede (infra-base) |
 | `aws_base_state_key` | `string` | `infra/prod-simulated/infra-base/terraform.tfstate` | Chave do state de rede (infra-base) |
 | `k8s_namespace` | `string` | `oficina` | Namespace Kubernetes a ser criado |
 | `enable_metrics_server` | `bool` | `true` | Se deve instalar o Metrics Server via Helm |
+
+> **Nota sobre AWS Academy:** As roles `EKS_CLUSTER_ROLE_NAME` e `EKS_NODE_ROLE_NAME` mudam de ID a cada reinício do lab. Elas são configuradas diretamente no GitHub em **Settings > Secrets and variables > Actions > Variables** e injetadas automaticamente nas esteiras via `TF_VAR_*`, sem necessidade de alterar o código.
 
 ### Saídas Exportadas (Outputs)
 

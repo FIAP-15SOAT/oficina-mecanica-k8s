@@ -1,0 +1,23 @@
+aws_region   = "us-east-1"
+project_name = "oficina-mecanica"
+environment  = "prod-simulated"
+
+kubernetes_version    = "1.35"
+eks_cluster_role_name = "LabEksClusterRole"
+eks_node_role_name    = "LabEksNodeRole"
+node_instance_type    = "t3.small"
+node_desired_size     = 1
+node_min_size         = 1
+node_max_size         = 1
+
+aws_base_state_bucket = "bkt-oficina-mecanica"
+aws_base_state_key    = "infra/prod-simulated/infra-base/terraform.tfstate"
+aws_base_state_region = "us-east-1"
+
+k8s_namespace      = "oficina"
+k8s_postgres_user  = "postgres"
+k8s_postgres_db    = "techchallenge"
+k8s_postgres_image = "postgres:16-alpine"
+
+enable_metrics_server        = true
+metrics_server_chart_version = "3.13.0"

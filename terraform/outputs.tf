@@ -28,16 +28,6 @@ output "k8s_namespace" {
   value       = kubernetes_namespace_v1.k8s_namespace.metadata[0].name
 }
 
-output "postgres_service_dns" {
-  description = "In-cluster DNS for Postgres service"
-  value       = "${kubernetes_service_v1.k8s_svc_postgres.metadata[0].name}.${kubernetes_namespace_v1.k8s_namespace.metadata[0].name}.svc.cluster.local"
-}
-
-output "postgres_service_port" {
-  description = "Postgres service port"
-  value       = 5432
-}
-
 output "zz_next_steps" {
   description = "Post-deploy quick guide shown at the end of terraform output"
   value       = <<-EOT

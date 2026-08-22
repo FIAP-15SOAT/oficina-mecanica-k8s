@@ -9,7 +9,6 @@
 ![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazon-eks&logoColor=white)
 ![AWS ECR](https://img.shields.io/badge/AWS-ECR-FF9900?logo=amazon-aws&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-3-0F1689?logo=helm&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 
 </div>
 
@@ -37,11 +36,6 @@ Faz parte do ecossistema de microsserviços e infraestrutura da pós-graduação
 4. **Metrics Server via Helm (`k8s_metrics_server.tf`)**:
    - Implantação do Helm chart oficial do `metrics-server` no namespace `kube-system`.
    - Fornece métricas de CPU e memória em tempo real essenciais para o **Horizontal Pod Autoscaler (HPA)** da API.
-
-5. **Banco de Dados PostgreSQL (`k8s_postgres.tf`)**:
-   - **Secret (`postgres-secret`)**: Armazena as credenciais de acesso (`POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD`).
-   - **StatefulSet (`postgres`)**: Executa a imagem `postgres:16-alpine` com limites de recursos definidos (`requests` 100m/256Mi, `limits` 500m/512Mi) e probes de saúde via `pg_isready` (`readiness` e `liveness`).
-   - **Service ClusterIP (`postgres`)**: Expõe a porta `5432` internamente no cluster no endereço DNS `postgres.oficina.svc.cluster.local`.
 
 ---
 
@@ -77,10 +71,9 @@ data "terraform_remote_state" "aws_base" {
 │   ├── eks.tf                   # Cluster EKS, Node Group, Log Group e Security Group
 │   ├── ecr.tf                   # Repositório Amazon ECR e Lifecycle Policy
 │   ├── k8s_namespace.tf         # Namespace da solução (oficina)
-│   ├── k8s_postgres.tf          # PostgreSQL StatefulSet, Secret e Service
 │   ├── k8s_metrics_server.tf    # Release Helm do metrics-server
 │   ├── variables.tf             # Declaração das variáveis
-│   ├── outputs.tf               # Saídas (cluster, ECR, namespace, DNS do postgres, comandos)
+│   ├── outputs.tf               # Saídas (cluster, ECR, namespace, comandos)
 │   ├── terraform.tfvars         # Valores de variáveis padrão
 │   └── terraform.tfvars.example
 └── .gitignore
@@ -114,9 +107,6 @@ data "terraform_remote_state" "aws_base" {
 | `aws_base_state_bucket` | `string` | `bkt-oficina-mecanica` | Bucket S3 do state de rede (infra-base) |
 | `aws_base_state_key` | `string` | `infra/prod-simulated/infra-base/terraform.tfstate` | Chave do state de rede (infra-base) |
 | `k8s_namespace` | `string` | `oficina` | Namespace Kubernetes a ser criado |
-| `k8s_postgres_user` | `string` | `postgres` | Usuário do banco PostgreSQL |
-| `k8s_postgres_db` | `string` | `techchallenge` | Nome do banco PostgreSQL |
-| `k8s_postgres_password` | `string` | — (*sensitive*) | Senha do PostgreSQL (injetada via segredo) |
 | `enable_metrics_server` | `bool` | `true` | Se deve instalar o Metrics Server via Helm |
 
 ### Saídas Exportadas (Outputs)
@@ -129,8 +119,6 @@ data "terraform_remote_state" "aws_base" {
 | `cluster_version` | Versão ativa do Kubernetes |
 | `ecr_repository_url` | URL do repositório ECR da aplicação |
 | `k8s_namespace` | Nome do namespace provisionado (`oficina`) |
-| `postgres_service_dns` | Endereço DNS interno do banco (`postgres.oficina.svc.cluster.local`) |
-| `postgres_service_port` | Porta de conexão ao banco de dados (`5432`) |
 | `zz_next_steps` | Guia com comandos rápidos para atualizar o `kubeconfig` e validar acesso |
 
 ---
@@ -154,10 +142,10 @@ cd oficina-mecanica-k8s/terraform
 terraform init
 
 # 3. Visualizar o plano de execução
-terraform plan -var="k8s_postgres_password=sua_senha_segura"
+terraform plan
 
 # 4. Aplicar o provisionamento
-terraform apply -var="k8s_postgres_password=sua_senha_segura"
+terraform apply
 
 # 5. Atualizar kubeconfig local
 aws eks update-kubeconfig --region us-east-1 --name eks-oficina-mecanica
@@ -172,7 +160,7 @@ aws eks update-kubeconfig --region us-east-1 --name eks-oficina-mecanica
   - **Ações**: `terraform fmt`, `init`, `validate` e `plan` (consumindo o remote state da VPC no S3). Abre PR para `main` ao passar.
 - **CD ([`cd.yml`](.github/workflows/cd.yml))**:
   - **Gatilho**: Push na branch `main` ou disparo manual via **Run workflow** (`workflow_dispatch`).
-  - **Ações**: `terraform apply -auto-approve` provisionando EKS, Node Group, ECR e manifests Kubernetes com injeção segura de `TF_VAR_k8s_postgres_password`. Controlado por `ENABLE_DEPLOY` ou execução manual.
+  - **Ações**: `terraform apply -auto-approve` provisionando EKS, Node Group, ECR e manifests Kubernetes. Controlado por `ENABLE_DEPLOY` ou execução manual.
 
 ---
 

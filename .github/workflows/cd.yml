@@ -22,8 +22,6 @@ jobs:
     if: vars.ENABLE_DEPLOY == 'true' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
-    env:
-      TF_VAR_k8s_postgres_password: ${{ secrets.K8S_POSTGRES_PASSWORD }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

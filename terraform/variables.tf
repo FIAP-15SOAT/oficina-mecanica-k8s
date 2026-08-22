@@ -82,30 +82,6 @@ variable "k8s_namespace" {
   default     = "oficina"
 }
 
-variable "k8s_postgres_user" {
-  description = "Postgres username for Kubernetes Secret"
-  type        = string
-  default     = "postgres"
-}
-
-variable "k8s_postgres_db" {
-  description = "Postgres database name for Kubernetes Secret"
-  type        = string
-  default     = "techchallenge"
-}
-
-variable "k8s_postgres_password" {
-  description = "Postgres password injected from CI secret for Kubernetes Secret"
-  type        = string
-  sensitive   = true
-}
-
-variable "k8s_postgres_image" {
-  description = "Postgres container image"
-  type        = string
-  default     = "postgres:16-alpine"
-}
-
 variable "enable_metrics_server" {
   description = "Install metrics-server in the cluster"
   type        = bool

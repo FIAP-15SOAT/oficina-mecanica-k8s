@@ -23,15 +23,15 @@ variable "kubernetes_version" {
 }
 
 variable "eks_cluster_role_name" {
-  description = "Existing IAM role name used by EKS cluster"
+  description = "Existing IAM role name used by EKS cluster (injected via TF_VAR_eks_cluster_role_name / EKS_CLUSTER_ROLE_NAME variable)"
   type        = string
-  default     = "LabEksClusterRole"
+  default     = ""
 }
 
 variable "eks_node_role_name" {
-  description = "Existing IAM role name used by EKS managed node group"
+  description = "Existing IAM role name used by EKS managed node group (injected via TF_VAR_eks_node_role_name / EKS_NODE_ROLE_NAME variable)"
   type        = string
-  default     = "LabEksNodeRole"
+  default     = ""
 }
 
 variable "node_instance_type" {

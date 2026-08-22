@@ -45,8 +45,6 @@ jobs:
       - name: Terraform Plan Kubernetes
         if: steps.aws_creds.outcome == 'success'
         working-directory: terraform
-        env:
-          TF_VAR_k8s_postgres_password: ${{ secrets.K8S_POSTGRES_PASSWORD }}
         run: |
           terraform init -reconfigure -no-color
           terraform plan -no-color

@@ -35,9 +35,21 @@ variable "eks_node_role_name" {
 }
 
 variable "node_instance_type" {
-  description = "EKS managed node group instance type"
+  description = <<-EOT
+    EKS managed node group instance type.
+
+    O limite que decide este valor nao e CPU nem memoria: e o teto de pods por
+    node do VPC CNI, dado por (ENIs x (IPs por ENI - 1)) + 2.
+
+      t3.small  -> 3 x (4 - 1) + 2 = 11 pods
+      t3.medium -> 3 x (6 - 1) + 2 = 17 pods
+
+    Com 11 pods o cluster ja nao comporta o `maxReplicas: 5` do HPA da API
+    junto dos workloads de sistema, e nao comporta de forma alguma o DaemonSet
+    do agente de observabilidade. Ver o PR que acompanha esta mudanca.
+  EOT
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "node_desired_size" {

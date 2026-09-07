@@ -5,7 +5,7 @@ kubernetes_version    = "1.35"
 # eks_cluster_role_name and eks_node_role_name are injected via GitHub Actions Variables (TF_VAR_*)
 # eks_cluster_role_name = "LabEksClusterRole"
 # eks_node_role_name    = "LabEksNodeRole"
-node_instance_type    = "t3.small"
+node_instance_type    = "t3.medium"
 node_desired_size     = 1
 node_min_size         = 1
 node_max_size         = 1

@@ -164,6 +164,10 @@ aws eks update-kubeconfig --region us-east-1 --name eks-oficina-mecanica
 
 ---
 
+## 📐 Decisões Arquiteturais
+
+- [ADR 0001 — Suporte ao HPA da API e dimensionamento do Node Group em função dele](docs/adr/0001-suporte-a-hpa-e-dimensionamento-do-node-group.md)
+
 ## 👥 Autores
 
 - [Guilherme da Rocha Salvador](https://github.com/guilhermesalvador404)

@@ -125,6 +125,8 @@ O balanceador fica **neste** repositório, e não no do Gateway, porque depende 
 | `eks_node_role_name` | `string` | `""` | Role IAM dos nós gerenciados (injetada via `vars.EKS_NODE_ROLE_NAME`) |
 | `node_instance_type` | `string` | `t3.medium` | Tipo de instância EC2 dos nós |
 | `node_desired_size` | `number` | `1` | Quantidade desejada de nós |
+| `node_min_size` | `number` | `1` | Quantidade mínima de nós |
+| `node_max_size` | `number` | `1` | Quantidade máxima de nós |
 | `aws_base_state_bucket` | `string` | `bkt-oficina-mecanica` | Bucket S3 do state de rede (infra-base) |
 | `aws_base_state_key` | `string` | `infra/prod-simulated/infra-base/terraform.tfstate` | Chave do state de rede (infra-base) |
 | `k8s_namespace` | `string` | `oficina` | Namespace Kubernetes a ser criado |

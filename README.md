@@ -193,6 +193,15 @@ aws eks update-kubeconfig --region us-east-1 --name eks-oficina-mecanica
 
 ---
 
+## 📐 Decisões Arquiteturais
+
+- [ADR 0001 — Suporte ao HPA da API e dimensionamento do Node Group em função dele](docs/adr/0001-suporte-a-hpa-e-dimensionamento-do-node-group.md)
+- [ADR 0002 — Amazon EKS como distribuição gerenciada de Kubernetes](docs/adr/0002-eks-como-distribuicao-gerenciada.md)
+- [ADR 0003 — Endpoint do control plane EKS público e privado simultaneamente](docs/adr/0003-endpoint-publico-e-privado-simultaneos.md)
+- [ADR 0004 — Amazon ECR com scan-on-push, tags mutáveis e retenção de 20 imagens](docs/adr/0004-ecr-scan-on-push-tags-mutaveis.md)
+- [ADR 0005 — Providers Kubernetes/Helm autenticados por token IAM efêmero](docs/adr/0005-auth-providers-k8s-helm-via-token-iam-efemero.md)
+- [ADR 0006 — Namespace único compartilhado para todos os recursos da aplicação](docs/adr/0006-namespace-unico-compartilhado.md)
+
 ## 👥 Autores
 
 - [Guilherme da Rocha Salvador](https://github.com/guilhermesalvador404)

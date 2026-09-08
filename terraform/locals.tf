@@ -4,4 +4,6 @@ locals {
   cw_lg_eks_cluster_tag_name = "cw-lg-eks-cluster-${var.project_name}"
   secgrp_eks_cluster_name    = "secgrp-eks-cluster-${var.project_name}"
   eks_node_group_name        = "ng-eks-${var.project_name}-default"
+  nlb_api_name               = "nlb-${var.project_name}-api"
+  tg_api_name                = "tg-${var.project_name}-api"
 }

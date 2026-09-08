@@ -28,6 +28,21 @@ output "k8s_namespace" {
   value       = kubernetes_namespace_v1.k8s_namespace.metadata[0].name
 }
 
+output "api_nlb_listener_arn" {
+  description = "ARN do listener do NLB interno da API."
+  value       = aws_lb_listener.nlb_api_listener.arn
+}
+
+output "api_nlb_arn" {
+  description = "ARN do NLB interno da API."
+  value       = aws_lb.nlb_api.arn
+}
+
+output "api_nlb_dns_name" {
+  description = "Nome DNS interno do NLB da API, util para diagnostico de dentro da VPC."
+  value       = aws_lb.nlb_api.dns_name
+}
+
 output "zz_next_steps" {
   description = "Post-deploy quick guide shown at the end of terraform output"
   value       = <<-EOT

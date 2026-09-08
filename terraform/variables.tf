@@ -105,3 +105,9 @@ variable "metrics_server_chart_version" {
   type        = string
   default     = ""
 }
+
+variable "api_node_port" {
+  description = "Porta NodePort em que a API e alcancada diretamente nos nos do cluster"
+  type        = number
+  default     = 30080
+}

@@ -9,12 +9,13 @@
 ![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazon-eks&logoColor=white)
 ![AWS ECR](https://img.shields.io/badge/AWS-ECR-FF9900?logo=amazon-aws&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-3-0F1689?logo=helm&logoColor=white)
+![AWS NLB](https://img.shields.io/badge/AWS-Network%20Load%20Balancer-FF9900?logo=amazon-aws&logoColor=white)
 
 </div>
 
 ## 📋 Sobre
 
-Este repositório contém o código de **Infraestrutura como Código (IaC)** responsável pelo provisionamento do cluster **Amazon EKS**, **Managed Node Group**, **Amazon ECR** (registro de imagens de contêiner) e da camada de plataforma dentro do Kubernetes para a solução **Oficina Mecânica**.
+Este repositório contém o código de **Infraestrutura como Código (IaC)** responsável pelo provisionamento do cluster **Amazon EKS**, **Managed Node Group**, **Amazon ECR** (registro de imagens de contêiner), da camada de plataforma dentro do Kubernetes e do **caminho privado de entrada da API** para a solução **Oficina Mecânica**.
 
 Faz parte do ecossistema de microsserviços e infraestrutura da pós-graduação em Arquitetura de Software da FIAP (turma 15SOAT, Fase 2).
 
@@ -24,7 +25,7 @@ Faz parte do ecossistema de microsserviços e infraestrutura da pós-graduação
    - Cluster Kubernetes gerenciado na versão **1.35** com endpoints público e privado ativados.
    - Logs de auditoria e control plane centralizados no **CloudWatch Logs** (`/aws/eks/eks-oficina-mecanica/cluster`) com retenção de 14 dias.
    - Security Group dedicado para o control plane liberando comunicação HTTPS (porta 443) a partir da VPC.
-   - **Managed Node Group** com instâncias `t3.small` distribuídas nas subnets privadas da VPC.
+   - **Managed Node Group** com instâncias `t3.medium` distribuídas nas subnets privadas da VPC.
 
 2. **Amazon ECR (`ecr.tf`)**:
    - Repositório de imagens de contêiner (`ecr-oficina-mecanica-app-repo`) com scan de vulnerabilidades automático no push e criptografia AES-256.
@@ -36,6 +37,13 @@ Faz parte do ecossistema de microsserviços e infraestrutura da pós-graduação
 4. **Metrics Server via Helm (`k8s_metrics_server.tf`)**:
    - Implantação do Helm chart oficial do `metrics-server` no namespace `kube-system`.
    - Fornece métricas de CPU e memória em tempo real essenciais para o **Horizontal Pod Autoscaler (HPA)** da API.
+
+5. **Caminho Privado de Entrada da API (`nlb.tf`)**:
+   - **Network Load Balancer interno** (`nlb-oficina-mecanica-api`) nas subnets privadas, com **cross-zone habilitado** — o node group tem um único nó e as subnets cobrem duas AZs, então sem cross-zone a AZ sem nó não alcançaria o único destino existente.
+   - **Target Group** (`tg-oficina-mecanica-api`) do tipo `instance` na **NodePort** da API, protocolo TCP, `preserve_client_ip = false` e health check **HTTP em `/api/health/ready`** — o mesmo endpoint da `readinessProbe`, para que "pronto" signifique a mesma coisa nos dois lugares.
+   - **Listener TCP:80** encaminhando ao target group.
+   - **Autoscaling Attachment** vinculando o ASG do managed node group ao target group: nós criados, substituídos ou escalados passam a receber tráfego sem intervenção manual.
+   - **Regra de ingress** no security group gerenciado do cluster liberando a NodePort **a partir da CIDR da VPC** (não `0.0.0.0/0`).
 
 ---
 
@@ -56,6 +64,20 @@ data "terraform_remote_state" "aws_base" {
 
 ---
 
+## 🔗 Integração com `oficina-mecanica-gateway`
+
+Este repositório é dono do **caminho privado de entrada** da API e o publica como saída. O repositório [`oficina-mecanica-gateway`](https://github.com/FIAP-15SOAT/oficina-mecanica-gateway) consome o output `api_nlb_listener_arn` via **Remote State** e o usa como URI da integração privada do API Gateway, alcançada por um VPC Link V2:
+
+```text
+cliente → API Gateway (HTTP API) → VPC Link V2 → NLB interno (aqui) → NodePort do nó → Pod da API
+```
+
+O balanceador fica **neste** repositório, e não no do Gateway, porque depende de dois recursos deste stack: o **Auto Scaling Group** do managed node group (alvo do `aws_autoscaling_attachment`) e o **security group gerenciado do cluster** (onde a regra de ingress da NodePort é criada). Assim, uma substituição do node group — troca de `instance_types`, por exemplo — refaz o vínculo no mesmo `apply`, em vez de deixar a borda apontando para um ASG inexistente. O raciocínio completo, com as alternativas descartadas, está no **ADR 0003** do repositório do Gateway.
+
+> ⚠️ **O NLB é criado sem security group.** Um NLB criado sem SG **não pode receber um depois** — só substituindo o balanceador. A decisão é deliberada: dentro desta VPC, quem poderia alcançar a NodePort diretamente são os próprios nós do EKS, o RDS (que não inicia conexões) e as ENIs do VPC Link, e a regra por CIDR da VPC é exatamente o que o repositório `oficina-mecanica-database` já faz para o RDS. O raciocínio completo, com o gatilho que justificaria revisitá-la, está no **ADR 0003** do repositório do Gateway.
+
+---
+
 ## 📁 Estrutura do Repositório
 
 ```text
@@ -69,6 +91,7 @@ data "terraform_remote_state" "aws_base" {
 │   ├── providers.tf             # Providers AWS, Kubernetes, Helm e leitura do remote state da VPC
 │   ├── locals.tf                # Nomes padronizados de recursos
 │   ├── eks.tf                   # Cluster EKS, Node Group, Log Group e Security Group
+│   ├── nlb.tf                   # NLB interno da API, Target Group, Listener, attachment ao ASG e regra de SG
 │   ├── ecr.tf                   # Repositório Amazon ECR e Lifecycle Policy
 │   ├── k8s_namespace.tf         # Namespace da solução (oficina)
 │   ├── k8s_metrics_server.tf    # Release Helm do metrics-server
@@ -100,12 +123,13 @@ data "terraform_remote_state" "aws_base" {
 | `kubernetes_version` | `string` | `1.35` | Versão do Kubernetes no EKS |
 | `eks_cluster_role_name` | `string` | `""` | Role IAM do cluster EKS (injetada via `vars.EKS_CLUSTER_ROLE_NAME`) |
 | `eks_node_role_name` | `string` | `""` | Role IAM dos nós gerenciados (injetada via `vars.EKS_NODE_ROLE_NAME`) |
-| `node_instance_type` | `string` | `t3.small` | Tipo de instância EC2 dos nós |
+| `node_instance_type` | `string` | `t3.medium` | Tipo de instância EC2 dos nós |
 | `node_desired_size` | `number` | `1` | Quantidade desejada de nós |
 | `aws_base_state_bucket` | `string` | `bkt-oficina-mecanica` | Bucket S3 do state de rede (infra-base) |
 | `aws_base_state_key` | `string` | `infra/prod-simulated/infra-base/terraform.tfstate` | Chave do state de rede (infra-base) |
 | `k8s_namespace` | `string` | `oficina` | Namespace Kubernetes a ser criado |
 | `enable_metrics_server` | `bool` | `true` | Se deve instalar o Metrics Server via Helm |
+| `api_node_port` | `number` | `30080` | NodePort em que a API é alcançada nos nós; precisa casar com o `Service` da API |
 
 > **Nota sobre AWS Academy:** As roles `EKS_CLUSTER_ROLE_NAME` e `EKS_NODE_ROLE_NAME` mudam de ID a cada reinício do lab. Elas são configuradas diretamente no GitHub em **Settings > Secrets and variables > Actions > Variables** e injetadas automaticamente nas esteiras via `TF_VAR_*`, sem necessidade de alterar o código.
 
@@ -119,6 +143,9 @@ data "terraform_remote_state" "aws_base" {
 | `cluster_version` | Versão ativa do Kubernetes |
 | `ecr_repository_url` | URL do repositório ECR da aplicação |
 | `k8s_namespace` | Nome do namespace provisionado (`oficina`) |
+| `api_nlb_listener_arn` | ARN do listener do NLB interno — **consumido pelo `oficina-mecanica-gateway`** como URI da integração privada |
+| `api_nlb_arn` | ARN do NLB interno da API |
+| `api_nlb_dns_name` | Nome DNS interno do NLB, útil para diagnóstico de dentro da VPC |
 | `zz_next_steps` | Guia com comandos rápidos para atualizar o `kubeconfig` e validar acesso |
 
 ---

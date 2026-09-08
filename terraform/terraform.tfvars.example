@@ -18,3 +18,5 @@ k8s_namespace = "oficina"
 
 enable_metrics_server       = true
 metrics_server_chart_version = "" # optional chart version pin
+
+api_node_port            = 30080

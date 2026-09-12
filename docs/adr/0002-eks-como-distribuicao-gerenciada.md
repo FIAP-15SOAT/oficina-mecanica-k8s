@@ -6,7 +6,7 @@ Aceito — 2026-09-07
 
 ## Contexto
 
-O projeto precisa rodar um cluster Kubernetes na AWS (`terraform/eks.tf` provisiona `aws_eks_cluster` e um `aws_eks_node_group` gerenciado). Essa é uma decisão distinta de "usar AWS" (ADR 0001 do `oficina-mecanica-infra-base`) ou de "usar Kubernetes" (implícito no requisito da Fase 2, ver ADR 0006 do `oficina-mecanica-app`): é especificamente a escolha de **como** o Kubernetes roda dentro da AWS — como um serviço gerenciado (EKS) ou como um cluster self-managed sobre instâncias EC2 cruas. Até hoje essa escolha nunca foi registrada explicitamente em nenhum documento do projeto.
+O projeto precisa rodar um cluster Kubernetes na AWS (`terraform/eks.tf` provisiona `aws_eks_cluster` e um `aws_eks_node_group` gerenciado). Essa é uma decisão distinta de "usar AWS" (ADR 0001 do `oficina-mecanica-infra-base`) ou de "usar Kubernetes" (implícito no requisito da Fase 2, ver ADR 0006 do `oficina-mecanica-api`): é especificamente a escolha de **como** o Kubernetes roda dentro da AWS — como um serviço gerenciado (EKS) ou como um cluster self-managed sobre instâncias EC2 cruas. Até hoje essa escolha nunca foi registrada explicitamente em nenhum documento do projeto.
 
 ## Decisão
 

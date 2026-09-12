@@ -6,9 +6,9 @@ Aceito — 2026-09-07
 
 ## Contexto
 
-`terraform/ecr.tf` provisiona um repositório Amazon ECR dedicado às imagens de container da API (`oficina-mecanica-app`), com três configurações que juntas formam uma política de gestão de imagens: varredura automática de vulnerabilidades no push (`scan_on_push = true`), criptografia AES-256, mutabilidade de tag (`image_tag_mutability = "MUTABLE"`) e uma lifecycle policy mantendo as últimas 20 imagens. Nenhuma dessas escolhas tinha, até agora, um registro do porquê.
+`terraform/ecr.tf` provisiona um repositório Amazon ECR dedicado às imagens de container da API (`oficina-mecanica-api`), com três configurações que juntas formam uma política de gestão de imagens: varredura automática de vulnerabilidades no push (`scan_on_push = true`), criptografia AES-256, mutabilidade de tag (`image_tag_mutability = "MUTABLE"`) e uma lifecycle policy mantendo as últimas 20 imagens. Nenhuma dessas escolhas tinha, até agora, um registro do porquê.
 
-O pipeline de CD do `oficina-mecanica-app` (`cd.yml`, job `build-push-image`) já publica **duas tags por build**: `${ECR_REPOSITORY}:${COMMIT_SHA}` — única por commit, nunca reescrita — e `${ECR_REPOSITORY}:latest`, reescrita a cada novo build. O próprio deploy (`Render deployment manifest with immutable image`, `cd.yml`) usa exclusivamente a tag por `COMMIT_SHA` no manifesto do `Deployment` — a tag `latest` nunca é referenciada por nenhum manifesto Kubernetes, servindo apenas como um ponteiro flutuante de conveniência (ex.: para alguém puxar manualmente a imagem mais recente fora do fluxo de deploy).
+O pipeline de CD do `oficina-mecanica-api` (`cd.yml`, job `build-push-image`) já publica **duas tags por build**: `${ECR_REPOSITORY}:${COMMIT_SHA}` — única por commit, nunca reescrita — e `${ECR_REPOSITORY}:latest`, reescrita a cada novo build. O próprio deploy (`Render deployment manifest with immutable image`, `cd.yml`) usa exclusivamente a tag por `COMMIT_SHA` no manifesto do `Deployment` — a tag `latest` nunca é referenciada por nenhum manifesto Kubernetes, servindo apenas como um ponteiro flutuante de conveniência (ex.: para alguém puxar manualmente a imagem mais recente fora do fluxo de deploy).
 
 ## Decisão
 
@@ -31,7 +31,7 @@ Manteria histórico completo de todas as imagens já publicadas, sem risco de ex
 
 ### `scan_on_push = false`, com scanner de vulnerabilidade externo (ex.: Trivy no CI)
 
-Já existe uma etapa de SAST no pipeline do `oficina-mecanica-app` (ADR 0014); um scanner externo dedicado a imagem poderia rodar ali. Descartada como substituto do `scan_on_push` nativo do ECR (embora nada impeça as duas coexistirem) porque o scan nativo roda automaticamente em toda imagem publicada, sem exigir manutenção de uma ferramenta adicional no pipeline nem a gestão de sua própria base de CVEs.
+Já existe uma etapa de SAST no pipeline do `oficina-mecanica-api` (ADR 0014); um scanner externo dedicado a imagem poderia rodar ali. Descartada como substituto do `scan_on_push` nativo do ECR (embora nada impeça as duas coexistirem) porque o scan nativo roda automaticamente em toda imagem publicada, sem exigir manutenção de uma ferramenta adicional no pipeline nem a gestão de sua própria base de CVEs.
 
 ## Consequências
 
@@ -55,4 +55,4 @@ Já existe uma etapa de SAST no pipeline do `oficina-mecanica-app` (ADR 0014); u
 ## Referências
 
 - `terraform/ecr.tf` — configuração do repositório ECR.
-- [`oficina-mecanica-app` › ADR 0014 — Pipelines de CI, CD, SAST e DAST separados](https://github.com/FIAP-15SOAT/oficina-mecanica-app/blob/master/docs/adr/0014-pipelines-ci-cd-sast-dast-separados.md)
+- [`oficina-mecanica-api` › ADR 0014 — Pipelines de CI, CD, SAST e DAST separados](https://github.com/FIAP-15SOAT/oficina-mecanica-api/blob/main/docs/adr/0014-pipelines-ci-cd-sast-dast-separados.md)

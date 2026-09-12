@@ -64,9 +64,9 @@ data "terraform_remote_state" "aws_base" {
 
 ---
 
-## 🔗 Integração com `oficina-mecanica-gateway`
+## 🔗 Integração com `oficina-mecanica-api-gateway`
 
-Este repositório é dono do **caminho privado de entrada** da API e o publica como saída. O repositório [`oficina-mecanica-gateway`](https://github.com/FIAP-15SOAT/oficina-mecanica-gateway) consome o output `api_nlb_listener_arn` via **Remote State** e o usa como URI da integração privada do API Gateway, alcançada por um VPC Link V2:
+Este repositório é dono do **caminho privado de entrada** da API e o publica como saída. O repositório [`oficina-mecanica-api-gateway`](https://github.com/FIAP-15SOAT/oficina-mecanica-api-gateway) consome o output `api_nlb_listener_arn` via **Remote State** e o usa como URI da integração privada do API Gateway, alcançada por um VPC Link V2:
 
 ```text
 cliente → API Gateway (HTTP API) → VPC Link V2 → NLB interno (aqui) → NodePort do nó → Pod da API
@@ -74,7 +74,7 @@ cliente → API Gateway (HTTP API) → VPC Link V2 → NLB interno (aqui) → No
 
 O balanceador fica **neste** repositório, e não no do Gateway, porque depende de dois recursos deste stack: o **Auto Scaling Group** do managed node group (alvo do `aws_autoscaling_attachment`) e o **security group gerenciado do cluster** (onde a regra de ingress da NodePort é criada). Assim, uma substituição do node group — troca de `instance_types`, por exemplo — refaz o vínculo no mesmo `apply`, em vez de deixar a borda apontando para um ASG inexistente. O raciocínio completo, com as alternativas descartadas, está no **ADR 0003** do repositório do Gateway.
 
-> ⚠️ **O NLB é criado sem security group.** Um NLB criado sem SG **não pode receber um depois** — só substituindo o balanceador. A decisão é deliberada: dentro desta VPC, quem poderia alcançar a NodePort diretamente são os próprios nós do EKS, o RDS (que não inicia conexões) e as ENIs do VPC Link, e a regra por CIDR da VPC é exatamente o que o repositório `oficina-mecanica-database` já faz para o RDS. O raciocínio completo, com o gatilho que justificaria revisitá-la, está no **ADR 0003** do repositório do Gateway.
+> ⚠️ **O NLB é criado sem security group.** Um NLB criado sem SG **não pode receber um depois** — só substituindo o balanceador. A decisão é deliberada: dentro desta VPC, quem poderia alcançar a NodePort diretamente são os próprios nós do EKS, o RDS (que não inicia conexões) e as ENIs do VPC Link, e a regra por CIDR da VPC é exatamente o que o repositório `oficina-mecanica-infra-database` já faz para o RDS. O raciocínio completo, com o gatilho que justificaria revisitá-la, está no **ADR 0003** do repositório do Gateway.
 
 ---
 
@@ -145,7 +145,7 @@ O balanceador fica **neste** repositório, e não no do Gateway, porque depende 
 | `cluster_version` | Versão ativa do Kubernetes |
 | `ecr_repository_url` | URL do repositório ECR da aplicação |
 | `k8s_namespace` | Nome do namespace provisionado (`oficina`) |
-| `api_nlb_listener_arn` | ARN do listener do NLB interno — **consumido pelo `oficina-mecanica-gateway`** como URI da integração privada |
+| `api_nlb_listener_arn` | ARN do listener do NLB interno — **consumido pelo `oficina-mecanica-api-gateway`** como URI da integração privada |
 | `api_nlb_arn` | ARN do NLB interno da API |
 | `api_nlb_dns_name` | Nome DNS interno do NLB, útil para diagnóstico de dentro da VPC |
 | `zz_next_steps` | Guia com comandos rápidos para atualizar o `kubeconfig` e validar acesso |
@@ -164,8 +164,8 @@ O balanceador fica **neste** repositório, e não no do Gateway, porque depende 
 
 ```bash
 # 1. Clonar o repositório e entrar na pasta terraform
-git clone https://github.com/FIAP-15SOAT/oficina-mecanica-k8s.git
-cd oficina-mecanica-k8s/terraform
+git clone https://github.com/FIAP-15SOAT/oficina-mecanica-infra-k8s.git
+cd oficina-mecanica-infra-k8s/terraform
 
 # 2. Inicializar o Terraform
 terraform init
